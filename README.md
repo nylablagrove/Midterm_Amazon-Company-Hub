@@ -92,6 +92,7 @@ Below is the structure of this GitHub repository and what each file or folder co
 ├── WHY_REPORT.md             # Written project report aligned with course rubric
 │
 ├── requirements.txt          # Python dependencies (Streamlit, Plotly, Pandas, etc.)
+├── runtime.txt               # Chnaging the Python version to get streamlit app to deploy
 ├── .gitignore                # Excludes temporary and cache files from version control
 │
 └── data/                     # Folder containing compressed datasets
