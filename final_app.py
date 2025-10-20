@@ -118,7 +118,7 @@ def pct(n, d):
 import os, zipfile
 
 DATA_DIR = "data"
-DATA_ZIP = os.path.join(DATA_DIR, "data.zip")
+DATA_ZIP = "data.zip"
 
 # candidates we will try in order for each dataset
 CANDIDATES = {
