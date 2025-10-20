@@ -118,7 +118,7 @@ def pct(n, d):
 import os, zipfile
 
 DATA_DIR = "data"
-DATA_ZIP = "data.zip"
+DATA_ZIP = os.path.join(DATA_DIR, "data.zip")
 
 # candidates we will try in order for each dataset
 CANDIDATES = {
@@ -533,7 +533,7 @@ with tabs[1]:
 # ============================================================
 # tab 3 - finance and ops
 # ============================================================
-with tabs[2]]:
+with tabs[2]:
     st.header(f"Finance and Ops - {month_focus}")
     st.caption("volume drivers, discount posture, and operational guardrails")
 
@@ -588,7 +588,7 @@ with tabs[2]]:
 # ============================================================
 # tab 4 - marketing and content strategy
 # ============================================================
-with tabs[3]]:
+with tabs[3]:
     st.header(f"Marketing and Content Strategy - {month_focus}")
     st.caption("turn ratings and reviews into a content plan a non technical teammate can use")
 
@@ -687,7 +687,7 @@ with tabs[3]]:
 # ============================================================
 # tab 5 - product and pricing
 # ============================================================
-with tabs[4]]:
+with tabs[4]:
     st.header(f"Product and Pricing - {month_focus}")
     st.caption("quality signals and how prices step down from list")
 
@@ -752,7 +752,7 @@ with tabs[4]]:
 # ============================================================
 # tab 6 - plans and accountability
 # ============================================================
-with tabs[5]]:
+with tabs[5]:
     st.header("Plans and Accountability")
     st.caption("concrete items with owners and due dates that match this month story")
 
