@@ -77,3 +77,35 @@ streamlit run final_app.py
 This project demonstrates end-to-end data analysis for Amazon product sales across two months.  
 It integrates finance, marketing, and product analytics to provide a full company snapshot.  
 The app encourages collaboration between teams through shared, easy-to-read insights rather than code or technical reports.
+
+---
+
+## Repository Structure
+
+Below is the structure of this GitHub repository and what each file or folder contains.
+
+```
+📦 Amazon-Company-Hub/
+│
+├── final_app.py                # Main Streamlit application file
+├── README.md                   # Overview, setup guide, and project explanation
+├── WHY_REPORT.md               # Written project report (matches rubric structure)
+│
+├── amazon_sales_with_two_months.csv   # Main dataset with two-month sales and category details
+├── amazon_reviews.csv                 # Optional dataset for review text and sentiment
+├── amazon_products.csv                # Optional dataset with product details and prices
+│
+├── requirements.txt            # Python library dependencies (Streamlit, Plotly, Pandas, etc.)
+│
+└── .gitignore                  # Hides cache and temporary files from version control
+```
+
+Each file in this repository serves a distinct purpose:
+- **`final_app.py`** — contains all Streamlit logic, layout, and visualizations.
+- **`README.md`** — provides setup, project summary, and documentation.
+- **`WHY_REPORT.md`** — contains the in-depth written explanation of the full project process.
+- **`requirements.txt`** — lists packages required to run the app locally or deploy online.
+- **CSV files** — store the datasets used for this analysis.
+- **`.gitignore`** — keeps unnecessary files out of GitHub (e.g., `__pycache__`, temporary data).
+
+---
