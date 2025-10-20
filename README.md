@@ -80,25 +80,24 @@ The app encourages collaboration between teams through shared, easy-to-read insi
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 Below is the structure of this GitHub repository and what each file or folder contains.
 
-```
-📦 Amazon-Company-Hub/
+📦 CMSE830_Midterm_AmazonHub/
 │
-├── final_app.py                # Main Streamlit application file
-├── README.md                   # Overview, setup guide, and project explanation
-├── WHY_REPORT.md               # Written project report (matches rubric structure)
+├── final_app.py              # Main Streamlit dashboard application
+├── README.md                 # Overview, setup instructions, and documentation
+├── WHY_REPORT.md             # Written project report aligned with course rubric
 │
-├── amazon_sales_with_two_months.csv   # Main dataset with two-month sales and category details
-├── amazon_reviews.csv                 # Optional dataset for review text and sentiment
-├── amazon_products.csv                # Optional dataset with product details and prices
+├── requirements.txt          # Python dependencies (Streamlit, Plotly, Pandas, etc.)
+├── .gitignore                # Excludes temporary and cache files from version control
 │
-├── requirements.txt            # Python library dependencies (Streamlit, Plotly, Pandas, etc.)
-│
-└── .gitignore                  # Hides cache and temporary files from version control
-```
+└── data/                     # Folder containing compressed datasets
+    └── data.zip              # Zipped archive with three smaller CSVs:
+                              #   • amazon_sales_with_two_months_small.csv
+                              #   • amazon_reviews_small.csv
+                              #   • amazon_products_small.csv
 
 Each file in this repository serves a distinct purpose:
 - **`final_app.py`** — contains all Streamlit logic, layout, and visualizations.
