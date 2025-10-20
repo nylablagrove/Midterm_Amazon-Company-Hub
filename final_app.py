@@ -31,6 +31,13 @@ import plotly.express as px
 from datetime import date, timedelta
 from textblob import TextBlob
 
+# --- performance-safe imports ---
+try:
+    from textblob import TextBlob
+    TEXTBLOB_OK = True
+except Exception:
+    TEXTBLOB_OK = False  # Cloud can still run without TextBlob
+
 
 # setting a page title and making the layout wide so charts can use the space
 st.set_page_config(page_title="Amazon Company Hub", layout="wide")
@@ -170,53 +177,40 @@ def pct(n, d):
         return np.nan
     return 100.0 * n / d
 
+# --- SECTION: data loading (cloud-friendly, cached, zero extraction) ---
 
-# read data from a zipped bundle so the repo stays small and easy to clone
-# expect: data/data.zip contains:
-#   - amazon_sales_with_two_months_small.csv    (required)
-#   - amazon_reviews_small.csv                  (optional)
-#   - amazon_products_small.csv                 (optional)
-import os
-import zipfile
+import os, zipfile, io
+DATA_ZIP = os.path.join("data", "data.zip")
 
-# set the path to the zip that lives inside the repo's data folder
-data_zip_path = os.path.join("data", "data.zip")
+@st.cache_data(show_spinner=True, ttl=3600)
+def load_from_zip(zip_path: str):
+    """Return (sales, reviews, catalog) DataFrames reading directly from the zip (no extract)."""
+    if not os.path.exists(zip_path):
+        # fallback: try loose CSVs
+        s = safe_read_csv(os.path.join("data", "amazon_sales_with_two_months_small.csv"))
+        r = safe_read_csv(os.path.join("data", "amazon_reviews_small.csv"))
+        c = safe_read_csv(os.path.join("data", "amazon_products_small.csv"))
+        if s is None:
+            return None, None, None
+        return s, r, c
 
-# small helper to read a csv by name from inside the zip, returns None if missing
-def _read_from_zip(zf: zipfile.ZipFile, member: str):
-    try:
-        with zf.open(member) as f:
-            return pd.read_csv(f, low_memory=False)
-    except KeyError:
-        return None
+    with zipfile.ZipFile(zip_path) as z:
+        def read_csv_inside(name):
+            try:
+                with z.open(name) as f:
+                    # wrap in BytesIO for pandas to stream without extracting
+                    return pd.read_csv(io.BytesIO(f.read()), low_memory=False)
+            except KeyError:
+                return None
 
-try:
-    # try loading from the zip first (preferred)
-    with zipfile.ZipFile(data_zip_path) as z:
-        # required sales (must exist or we stop)
-        sales = _read_from_zip(z, "amazon_sales_with_two_months_small.csv")
-        if sales is None:
-            st.error("Missing **amazon_sales_with_two_months_small.csv** inside data/data.zip.")
-            st.stop()
+        s = read_csv_inside("amazon_sales_with_two_months_small.csv")
+        r = read_csv_inside("amazon_reviews_small.csv")
+        c = read_csv_inside("amazon_products_small.csv")
+        return s, r, c
 
-        # optional datasets; it's okay if they are not present
-        reviews = _read_from_zip(z, "amazon_reviews_small.csv")
-        catalog = _read_from_zip(z, "amazon_products_small.csv")
-
-except FileNotFoundError:
-    # if the zip file is not found, fall back to plain csv files in the data folder
-    # this lets the app still run if someone unzipped them manually
-    sales   = safe_read_csv(os.path.join("data", "amazon_sales_with_two_months_small.csv"))
-    reviews = safe_read_csv(os.path.join("data", "amazon_reviews_small.csv"))
-    catalog = safe_read_csv(os.path.join("data", "amazon_products_small.csv"))
-
-    # sales is required; if still missing, stop with a clear message
-    if sales is None:
-        st.error("Could not find data. Expect **data/data.zip** or **data/amazon_sales_with_two_months_small.csv**.")
-        st.stop()
-except Exception as e:
-    # catch any other unexpected loading errors and stop cleanly
-    st.error(f"Error loading data from zip: {e}")
+sales, reviews, catalog = load_from_zip(DATA_ZIP)
+if sales is None:
+    st.error("Missing data. Put **data/data.zip** in the repo with the three *_small.csv files inside (no subfolder).")
     st.stop()
 
 
@@ -295,30 +289,43 @@ def prep_reviews(df):
     return df
 
 # function to normalize optional product metadata if present
-def prep_catalog(df):
+def prep_reviews(df):
     """
-    optional: normalize product metadata if available
+    light cleaning: month, numeric rating, review text, category
+    note: we DO NOT compute sentiment here to keep startup fast on Streamlit Cloud.
     """
     if df is None:
         return None
     df = df.copy()
-    # clean any price columns
-    for c in ["discounted_price", "actual_price", "original_price"]:
-        if c in df.columns:
-            df[c] = safe_num(df[c])
-    # strip leading and trailing spaces on names and titles
-    for c in ["product_name", "product_title"]:
-        if c in df.columns:
-            df[c] = df[c].astype(str).str.strip()
-    # normalize category name if needed
-    if "category" in df.columns and "Category_std" not in df.columns:
-        df["Category_std"] = df["category"].astype(str).str.strip()
+
+    # month from any date-like column
+    date_col = next((c for c in df.columns if "date" in c.lower()), None)
+    if date_col:
+        df["month"] = pd.to_datetime(df[date_col], errors="coerce").dt.to_period("M").astype(str)
+
+    # rating as numeric
+    rate_col = next((c for c in df.columns if "rating" in c.lower()), None)
+    if rate_col:
+        df["rating"] = safe_num(df[rate_col])
+
+    # review text (keep as-is; sentiment will be optional later)
+    text_col = next((c for c in df.columns if ("text" in c.lower() or "review" in c.lower())), None)
+    if text_col:
+        df["review_text"] = df[text_col].astype(str).fillna("")
+
+    # category
+    cat_col = next((c for c in df.columns if "category" in c.lower()), None)
+    if cat_col:
+        df["Category_std"] = df[cat_col].astype(str).str.strip()
+
     return df
 
 # apply standardization to each dataset now so the rest of the app is simpler
-sales   = prep_sales(sales)
-reviews = prep_reviews(reviews)
-catalog = prep_catalog(catalog)
+@st.cache_data(show_spinner=False)
+def _prep_all(s, r, c):
+    return prep_sales(s), prep_reviews(r), prep_catalog(c)
+
+sales, reviews, catalog = _prep_all(sales, reviews, catalog)
 
 
 # add a sidebar for month and category choices, a small legend, and a data quality toggle
