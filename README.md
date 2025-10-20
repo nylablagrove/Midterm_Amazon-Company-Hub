@@ -84,6 +84,7 @@ The app encourages collaboration between teams through shared, easy-to-read insi
 
 Below is the structure of this GitHub repository and what each file or folder contains.
 
+```
 📦 CMSE830_Midterm_AmazonHub/
 │
 ├── final_app.py              # Main Streamlit dashboard application
@@ -98,6 +99,7 @@ Below is the structure of this GitHub repository and what each file or folder co
                               #   • amazon_sales_with_two_months_small.csv
                               #   • amazon_reviews_small.csv
                               #   • amazon_products_small.csv
+```
 
 Each file in this repository serves a distinct purpose:
 - **`final_app.py`** — contains all Streamlit logic, layout, and visualizations.
